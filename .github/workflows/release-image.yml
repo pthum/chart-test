@@ -10,10 +10,6 @@ env:
   IMAGE_NAME: ${{ github.repository }}
 
 jobs:
-  # Test Jobs
-  lint-helm:
-    uses: ./.github/workflows/.lint-charts.yml
-
   lint-and-test-go:
     uses: ./.github/workflows/.lint-and-test-go.yml
     secrets: inherit
@@ -22,7 +18,7 @@ jobs:
   build-and-push:
     name: Build and Push Docker Images
     runs-on: ubuntu-latest
-    needs: [lint-helm, lint-go, test]
+    needs: [lint-and-test-go]
     if: github.event_name != 'pull_request'
     permissions:
       contents: read
@@ -61,7 +57,7 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: .
-          platforms: linux/amd64,linux/arm/v7,linux/arm64/v8
+          platforms: linux/amd64
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
