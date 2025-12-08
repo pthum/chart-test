@@ -1,0 +1,39 @@
+# reusable workflow
+name: .lint-charts
+
+# TODO: hide reusable workflow from the UI. Tracked in https://github.com/community/community/discussions/12025
+
+# Default to 'contents: read', which grants actions to read commits.
+#
+# If any permission is set, any permission not included in the list is
+# implicitly set to "none".
+#
+# see https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#permissions
+permissions:
+  contents: read
+
+on:
+  workflow_call:
+
+env:
+  GO_VERSION: "1.25.5"
+  GOTESTLIST_VERSION: v0.3.1
+  TESTSTAT_VERSION: v0.1.25
+  SETUP_BUILDX_VERSION: edge
+  SETUP_BUILDKIT_IMAGE: moby/buildkit:latest
+
+jobs:
+  lint-helm:
+    name: Lint Helm Chart
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+      
+      - name: Set up Helm
+        uses: azure/setup-helm@v4
+        with:
+          version: '3.13.0'
+      
+      - name: Lint Helm Chart
+        run: helm lint deploy/cert-manager-webhook-inwx

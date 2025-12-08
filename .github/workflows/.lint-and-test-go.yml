@@ -1,0 +1,91 @@
+# reusable workflow
+name: .lint-and-test-go
+
+# TODO: hide reusable workflow from the UI. Tracked in https://github.com/community/community/discussions/12025
+
+# Default to 'contents: read', which grants actions to read commits.
+#
+# If any permission is set, any permission not included in the list is
+# implicitly set to "none".
+#
+# see https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#permissions
+permissions:
+  contents: read
+
+on:
+  workflow_call:
+
+env:
+  GO_VERSION: "1.25.5"
+  GOTESTLIST_VERSION: v0.3.1
+  TESTSTAT_VERSION: v0.1.25
+  SETUP_BUILDX_VERSION: edge
+  SETUP_BUILDKIT_IMAGE: moby/buildkit:latest
+
+jobs:
+  lint-go:
+    name: Lint Go Code
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+      
+      - name: Set up Go
+        uses: actions/setup-go@v6
+        with:
+          go-version: '1.25.5'
+      
+      # - name: Check Go formatting
+      #   run: |
+      #     if [ "$(gofmt -s -l . | wc -l)" -gt 0 ]; then
+      #       echo "Go code is not formatted properly:"
+      #       gofmt -s -l .
+      #       echo "Please run 'gofmt -s -w .' to fix formatting"
+      #       exit 1
+      #     fi
+      
+      # - name: Run go vet (built-in linter)
+      #   run: go vet ./...
+      
+      # - name: Run staticcheck (modern code quality)
+      #   run: |
+      #     go install honnef.co/go/tools/cmd/staticcheck@latest
+      #     staticcheck ./...
+      
+      # - name: Run basic Go checks
+      #   run: |
+      #     # Check for unused imports and other basic issues
+      #     go build -v ./...
+      #     echo "✅ Go code builds successfully"
+
+  test:
+    name: Run Tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+      
+      - name: Set up Go
+        uses: actions/setup-go@v6
+        with:
+          go-version: '1.25.5'
+      
+      - name: Install dependencies
+        run: |
+          sudo apt-get update && apt-get install -y gettext-base
+
+      - name: Download dependencies
+        run: go mod download
+      
+      - name: Run tests (Unit tests only)
+        run: |
+          # Check if we have real INWX credentials
+          if [ -z "$TEST_SECRET" ] || [ -z "$TEST_ENV" ]; then
+            echo "⚠️  No required envs found"
+          else
+            echo "🔑 required envs found"
+          fi
+          go test -v -cover ./...
+        env:
+          TEST_SECRET: ${{ secrets.TEST_SECRET }}
+          TEST_ENV: ${{ vars.TEST_ENV }}
