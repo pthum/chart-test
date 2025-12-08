@@ -11,7 +11,7 @@ jobs:
   release-chart:
     name: Release Helm Chart
     runs-on: ubuntu-latest
-    # needs: [build-and-push]
+    needs: [lint-helm]
     if: github.event_name == 'release'
     permissions:
       contents: read
@@ -39,6 +39,6 @@ jobs:
       - name: Run chart-releaser
         uses: helm/chart-releaser-action@v1.7.0
         with:
-          charts_dir: deploy
+          charts_dir: charts
         env:
           CR_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
