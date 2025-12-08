@@ -19,6 +19,7 @@ jobs:
 
   lint-and-test-go:
     uses: ./.github/workflows/.lint-and-test-go.yml
+    secrets: inherit
 
   # Build and Push Multi-Arch Docker Images
   # build-and-push:
